@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script>
+    const curry =
+      (callback) =>
+      (firstArgument, ...rest) =>
+        rest.length
+          ? callback(firstArgument, ...rest)
+          : (...args) => callback(firstArgument, ...args);
+
+    const L = {};
+    L.filter = curry(function* (predicate, iterable) {
+      for (const item of iterable) {
+        console.log("filter", item);
+        if (predicate(item)) {
+          yield item;
+        }
+      }
+    });
+
+    L.map = curry(function* (mapper, iterable) {
+      for (const item of iterable) {
+        console.log("map", item);
+        yield mapper(item);
+      }
+    });
+
+    const take = curry((length, iterable) => {
+      const result = [];
+
+      for (const item of iterable) {
+        console.log("take", item);
+        result.push(item);
+        if (result.length === length) {
+          return result;
+        }
+      }
+      return result;
+    });
+
+    const reduce = curry((reducer, acc, iterable) => {
+      if (iterable === undefined) {
+        iterable = acc[Symbol.iterator]();
+        acc = iterable.next().value;
+      }
+
+      for (const item of iterable) {
+        acc = reducer(acc, item);
+      }
+      return acc;
+    });
+
+    const add = (a, b) => a + b;
+
+    const pipe = (...iterator) => reduce((acc, func) => func(acc), iterator);
+
+    const main = () => {
+      const func = (iterable, amount) =>
+        pipe(
+          iterable,
+          L.filter((a) => a % 2 === 0),
+          L.map((a) => a * a),
+          take(amount),
+          reduce(add)
+        );
+
+      const iterable = [1, 2, 3, 4, 5, 6, 7];
+      // console.log(func(iterable, 1)); // 4
+      console.log(func(iterable, 2)); // 20
+      // console.log(func(iterable, 3)); // 56
+
+      // const amount = 2;
+      // const reseult = iterable
+      //   .filter((a) => a % 2 === 0)
+      //   .map((a) => a * a)
+      //   .slice(0, amount)
+      //   .reduce(add);
+      // console.log(reseult);
+    };
+
+    main();
+  </script>
+</html>
+
